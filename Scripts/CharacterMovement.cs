@@ -6,14 +6,16 @@ public class CharacterMovement : MonoBehaviour
 
     #region Private Variables
 
-
+    public float Health;
+    public float currentHealth;
     Animator animator;
-    Vector2 input;
+    [HideInInspector]
+    public Vector2 input;
     bool isAiming;
     Vector3 velocity;
 
     static public bool isSprinting;
-    
+
     CharacterController character_controller;
     #endregion
 
@@ -29,6 +31,7 @@ public class CharacterMovement : MonoBehaviour
     {
         animator = GetComponent<Animator>();
         character_controller = GetComponent<CharacterController>();
+        currentHealth = Health;
     }
 
     // Update is called once per frame
@@ -39,14 +42,14 @@ public class CharacterMovement : MonoBehaviour
 
         canJump = character_controller.isGrounded;
 
-            if(Input.GetKey(KeyCode.LeftShift))
-            {
-                isSprinting = true;
-            }
-            else
-            {
-                isSprinting = false;
-            }
+        if (Input.GetKey(KeyCode.LeftShift))
+        {
+            isSprinting = true;
+        }
+        else
+        {
+            isSprinting = false;
+        }
         animator.SetBool("isSprinting", isSprinting);
         if (canJump)
         {
@@ -62,16 +65,27 @@ public class CharacterMovement : MonoBehaviour
             animator.SetTrigger("jumped");
         }
 
-        if(!canJump)
+        if (!canJump)
         {
             velocity.y -= gravity * Time.deltaTime;
-            character_controller.Move(CalculateAirControl()*Time.deltaTime);   
+            character_controller.Move(CalculateAirControl() * Time.deltaTime);
         }
         character_controller.Move(velocity * Time.deltaTime);
     }
 
+    public void TakeDamage(int damage, Vector3 direction)
+    {
+        currentHealth -= damage;
+        if (currentHealth <= 0)
+        {
+            //Debug.Log("death");
+        }
+    }
+
     Vector3 CalculateAirControl()
     {
-        return ((transform.forward * input.y) + (transform.right*input.x))* air_control;
+        return ((transform.forward * input.y) + (transform.right * input.x)) * air_control;
     }
+
+
 }

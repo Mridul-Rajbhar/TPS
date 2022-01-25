@@ -27,6 +27,7 @@ public class CrossHairTarget : MonoBehaviour
         ray.direction = mainCamera.transform.forward;
         ray.origin = mainCamera.transform.position;
 
+        Debug.DrawRay(ray.origin, ray.direction * 20f, Color.green, 0.05f);
         if(Physics.Raycast(ray, out hitInfo))
             transform.position = hitInfo.point;  
 

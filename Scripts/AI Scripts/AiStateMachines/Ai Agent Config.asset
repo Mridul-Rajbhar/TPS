@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbc56de918a9df64fac8a576a890716c, type: 3}
+  m_Name: Ai Agent Config
+  m_EditorClassIdentifier: 
+  maxTime: 1
+  attackDistance: 20
+  Deathforce: 10
+  chaseDistance: 40

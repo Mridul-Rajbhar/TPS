@@ -6,8 +6,8 @@ public class RaycastWeapon : MonoBehaviour
 
     public ActiveWeapon.WeaponSlot weaponSlot;
     public Transform rayCastDestination;
-    
-    public ParticleSystem[] muzzleFlash; 
+
+    public ParticleSystem[] muzzleFlash;
     public ParticleSystem hitEffect;
     public Transform rayCastOrigin;
     public TrailRenderer bulletTracer;
@@ -17,7 +17,8 @@ public class RaycastWeapon : MonoBehaviour
     public Vector2 spreadValues;
     public GameObject magazine_gameobject;
     public string weaponName;
-
+    public bool canFire = false;
+    public int damage;
 
 
     #endregion
@@ -25,8 +26,7 @@ public class RaycastWeapon : MonoBehaviour
     #region Private Variables
 
     bool inRange;
-    public bool canFire = false;
-    
+
     [SerializeField]
     public Ray ray;
 
@@ -40,42 +40,66 @@ public class RaycastWeapon : MonoBehaviour
     {
         bulletsFired = 0;
         bulletsLeft = magazine;
-
-    }
-
-    public void StartFiring()
-    {
-        canFire = true;
-        if (Time.time > fireRate + lastShot && bulletsLeft>0)
+        if (transform.root.gameObject.CompareTag("enemy"))
         {
-            FireBullet();
-            lastShot = Time.time;
+            gameObject.AddComponent<AiShoot>();
+
         }
 
     }
-    public void FireBullet()
+
+    public void StartFiring(Vector3 target)
     {
-            foreach (var ps in muzzleFlash)
+        canFire = true;
+        if (Time.time > fireRate + lastShot && bulletsLeft > 0)
+        {
+            FireBullet(target);
+            lastShot = Time.time;
+        }
+    }
+
+    public void FireBullet(Vector3 target)
+    {
+        foreach (var ps in muzzleFlash)
+        {
+            ps.Emit(1);
+        }
+
+        ray.origin = rayCastOrigin.position;
+        ray.direction = target - rayCastOrigin.position + new Vector3(Random.Range(-spreadValues.x, spreadValues.x), Random.Range(-spreadValues.y, spreadValues.y), 0f);
+
+
+        var currentBulletTracerEffect = Instantiate(bulletTracer, ray.origin, Quaternion.identity);
+        currentBulletTracerEffect.AddPosition(ray.origin);
+
+        if (Physics.Raycast(ray, out hitInfo, range))
+        {
+            // Debug.DrawLine(ray.origin, hitInfo.point, Color.red, 1f);
+            hitEffect.transform.position = hitInfo.point;
+            hitEffect.transform.forward = hitInfo.normal;
+            hitEffect.Emit(1);
+            currentBulletTracerEffect.transform.position = hitInfo.point;
+            var hitBox = hitInfo.collider.GetComponent<HitBox>();
+            if (hitBox)
             {
-                ps.Emit(1);
+                //Debug.Log(hitBox);
+                hitBox.OnRaycastHit(this, ray.direction);
+
+            }
+            var player = hitInfo.collider.transform.root.GetComponent<CharacterMovement>();
+            //Debug.Log(hitInfo.collider.name);
+            if (player)
+            {
+                player.TakeDamage(damage, ray.direction);
             }
 
-            ray.origin = rayCastOrigin.position;
-            ray.direction = rayCastDestination.position - rayCastOrigin.position + new Vector3(Random.Range(-spreadValues.x, spreadValues.x), Random.Range(-spreadValues.y, spreadValues.y), 0f);
-            
-            
-            var currentBulletTracerEffect = Instantiate(bulletTracer, ray.origin, Quaternion.identity);
-            currentBulletTracerEffect.AddPosition(ray.origin);
-
-            if (Physics.Raycast(ray, out hitInfo, range))
+            var cylinder = hitInfo.collider.transform.root.GetComponent<BlastCylinder>();
+            if (cylinder)
             {
-                // Debug.DrawLine(ray.origin, hitInfo.point, Color.red, 1f);
-                hitEffect.transform.position = hitInfo.point;
-                hitEffect.transform.forward = hitInfo.normal;
-                hitEffect.Emit(1);
-                currentBulletTracerEffect.transform.position = hitInfo.point;
-
+                cylinder.TakeDamage(damage);
             }
+
+        }
         bulletsFired++;
         bulletsLeft--;
         if (bulletsLeft > 0)
@@ -89,7 +113,7 @@ public class RaycastWeapon : MonoBehaviour
             bulletsFired = 0;
 
         Destroy(currentBulletTracerEffect.gameObject, 0.5f);
-        
+
     }
 
     public void Reload()
@@ -97,7 +121,7 @@ public class RaycastWeapon : MonoBehaviour
         bulletsLeft = magazine;
     }
 
-     public void StopFiring()
+    public void StopFiring()
     {
         canFire = false;
     }
