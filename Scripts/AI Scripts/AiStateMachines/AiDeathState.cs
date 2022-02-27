@@ -6,8 +6,10 @@ public class AiDeathState : AiState
     {
         agent.ragdoll.ActivateRagdoll();
         direction.y = 1;
-        agent.ragdoll.ApplyForce(direction * agent.aiAgentConfig.Deathforce);
+        agent.ragdoll.ApplyForce(direction * agent.Deathforce);
         agent.navMeshAgent.enabled = false;
+        if (Random.Range(0, 4) > 1f)
+            agent.pickups();
         agent.uIHealthScript.gameObject.SetActive(false);
     }
 
@@ -23,6 +25,7 @@ public class AiDeathState : AiState
 
     public void Update(AiAgent agent)
     {
+
         GameObject.Destroy(agent.gameObject, 3f);
     }
 }

@@ -53,7 +53,8 @@ public class Health : MonoBehaviour
     {
         AiDeathState deathState = aiAgent.stateMachine.GetState(AiStateId.Death) as AiDeathState;
         deathState.direction = direction;
-        DropGun();
+        aiAgent.playerTransform.GetComponent<CharacterMovement>().score += 10;
+        //DropGun();
 
         aiAgent.stateMachine.ChangeState(AiStateId.Death);
     }

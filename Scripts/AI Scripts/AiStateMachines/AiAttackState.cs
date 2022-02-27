@@ -6,7 +6,6 @@ public class AiAttackState : AiState
 {
     RaycastHit raycastHit;
 
-    float timer = 0.0f;
     public void Enter(AiAgent agent)
     {
         agent.animator.SetBool("attack", true);
@@ -28,7 +27,7 @@ public class AiAttackState : AiState
     public void Update(AiAgent agent)
     {
 
-        if (agent.agentPlayerDistance > agent.attackDistance)
+        if (agent.agentPlayerDistance > agent.attackDistance + 5)
         {
             agent.stateMachine.ChangeState(AiStateId.ChasePlayer);
         }

@@ -5,12 +5,11 @@ using UnityEngine;
 public class AiChasePlayerState : AiState
 {
     public Vector3 direction;
-
-    float timer = 0.0f;
+    RaycastHit hitInfo;
 
     public void Enter(AiAgent agent)
     {
-        agent.navMeshAgent.speed = 5;
+        agent.navMeshAgent.speed = agent.agent_speed;
 
         agent.weaponAim.weight = 1;
 
@@ -32,7 +31,6 @@ public class AiChasePlayerState : AiState
         //agent.transform.LookAt(agent.playerTransform.position);
 
 
-        float chaseDistance = agent.aiAgentConfig.chaseDistance;
         // if (agent.agentPlayerDistance > chaseDistance)
         // {
         //     agent.stateMachine.ChangeState(AiStateId.Find);
@@ -45,5 +43,6 @@ public class AiChasePlayerState : AiState
         {
             agent.stateMachine.ChangeState(AiStateId.Attack);
         }
+
     }
 }

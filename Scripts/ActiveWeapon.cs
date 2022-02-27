@@ -1,12 +1,15 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
+//using UnityEngine.UI;
 using UnityEngine.Animations.Rigging;
+//using TMPro;
 
 
 public class ActiveWeapon : MonoBehaviour
 {
+    public Sound sound;
+    public AudioSource audioSource;
 
     public enum WeaponSlot //There are two slots for weapon
     {
@@ -14,6 +17,7 @@ public class ActiveWeapon : MonoBehaviour
         Secondary_weapon = 1
     }
 
+    UIGameScreen uIGameScreen;
 
     public Transform crossHairTarget, leftHandIK, rightHandIK;
     public RaycastWeapon[] equiped_weapon = new RaycastWeapon[2]; //RayCast Component of weapons
@@ -25,8 +29,7 @@ public class ActiveWeapon : MonoBehaviour
 
     public Animator rigController;
 
-    [SerializeField]
-    Image crossHair;
+
 
 
 
@@ -35,7 +38,10 @@ public class ActiveWeapon : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        audioSource = GetComponent<AudioSource>();
+        sound = GameObject.FindGameObjectWithTag("sound").GetComponent<Sound>();
         RaycastWeapon existWeapon = GetComponentInChildren<RaycastWeapon>();
+        uIGameScreen = FindObjectOfType<UIGameScreen>();
         if (existWeapon)
         {
             Equip(existWeapon);
@@ -57,30 +63,36 @@ public class ActiveWeapon : MonoBehaviour
 
         if (weapon)
         {
+            //Debug.Log(active_weapon_index);
+            uIGameScreen.bullet_count.text = weapon.bulletsLeft + "/" + weapon.total_bullets;
             checkInRange.origin = weapon.rayCastOrigin.position;
             checkInRange.direction = crossHairTarget.position - weapon.rayCastOrigin.position;
 
             rigController.SetBool("isSprinting", CharacterMovement.isSprinting);
 
             Debug.DrawRay(checkInRange.origin, checkInRange.direction * weapon.range, Color.red, 0.05f);
-            if (Physics.Raycast(checkInRange, weapon.range))
+            LayerMask avoidBorder = (1 << 9);
+            avoidBorder = ~avoidBorder;
+            if (Physics.Raycast(checkInRange, weapon.range, avoidBorder))
             {
-                crossHair.color = Color.red;
+                uIGameScreen.crossHair.color = Color.red;
             }
             else
             {
-                crossHair.color = Color.yellow;
+                uIGameScreen.crossHair.color = Color.yellow;
             }
 
             if (Input.GetKeyDown(KeyCode.R))
             {
                 isReload = true;
-                rigController.SetTrigger("reload");
+                //rigController.SetTrigger("reload");
+                equiped_weapon[active_weapon_index].Reload();
             }
 
             if (Input.GetKey(KeyCode.Mouse0) && !isHolster && !CharacterMovement.isSprinting && !isReload) // Shooting
             {
                 weapon.StartFiring(crossHairTarget.position);
+
             }
             else
             {
@@ -101,7 +113,7 @@ public class ActiveWeapon : MonoBehaviour
 
         }
         else
-            crossHair.color = Color.yellow;
+            uIGameScreen.crossHair.color = Color.yellow;
 
     }
 
@@ -122,6 +134,7 @@ public class ActiveWeapon : MonoBehaviour
     public void Equip(RaycastWeapon newWeapon)
     {
         int weaponSlotIndex = (int)newWeapon.weaponSlot; //Each weapon will have slot index.
+        //Debug.Log(weaponSlotIndex);
         var weapon = GetWeapon(weaponSlotIndex); //Get raycast component of weapon with that weaponSlotIndex.
         if (weapon)
         {
@@ -131,6 +144,8 @@ public class ActiveWeapon : MonoBehaviour
         weapon.rayCastDestination = crossHairTarget;
         weapon.transform.SetParent(weapon_positions[weaponSlotIndex], false); //weapon will become child of weapon_position[] on the basis of weaponSlotIndex(primary, secondary or small gun)
         weapon.transform.localPosition = Vector3.zero;
+        weapon.activeWeapon = this;
+
 
         rigController.SetInteger("weapon_index", weaponSlotIndex);
         //Debug.Log(weaponSlotIndex);
@@ -181,6 +196,20 @@ public class ActiveWeapon : MonoBehaviour
             rigController.SetInteger("weapon_index", index);
             yield return new WaitForSeconds(rigController.GetCurrentAnimatorStateInfo(0).length);
 
+        }
+    }
+
+    public void DropWeapon()
+    {
+        var weapon = GetWeapon(active_weapon_index);
+        if (weapon)
+        {
+            GameObject gun = weapon.gameObject;
+            rigController.SetLayerWeight(0, 0);
+            gun.transform.parent = null;
+
+            active_weapon_index = -1;
+            rigController.Play("weapon_unarmed");
         }
     }
 

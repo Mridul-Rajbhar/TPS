@@ -6,6 +6,8 @@ using UnityEngine.Animations.Rigging;
 
 public class AiAgent : MonoBehaviour
 {
+    public Sound sound;
+    public AudioSource audioSource;
     public AiSetTarget aiSetTarget;
     public Rig weaponAim;
     public Transform playerTransform;
@@ -16,15 +18,23 @@ public class AiAgent : MonoBehaviour
     public NavMeshAgent navMeshAgent;
     public AiStateMachine stateMachine;
     public AiStateId initialState;
-    public AiAgentConfig aiAgentConfig;
+    //public AiAgentConfig aiAgentConfig;
 
     public Animator animator;
     public RaycastWeapon raycastWeapon;
 
-    public float attackDistance, agentPlayerDistance;
+    public GameObject healthPickUp, ak47, pistol;
+    public float attackDistance, agentPlayerDistance, chaseDistance, Deathforce;
+
+    public Vector3 offset;
+    public float agent_speed;
+
+    public Vector3 tempTarget;
     // Start is called before the first frame update
     void Start()
     {
+        audioSource = GetComponent<AudioSource>();
+        sound = GameObject.FindGameObjectWithTag("sound").GetComponent<Sound>();
         if (playerTransform == null)
         {
             playerTransform = GameObject.FindGameObjectWithTag("Player").transform;
@@ -49,11 +59,27 @@ public class AiAgent : MonoBehaviour
 
     }
 
+    public void pickups()
+    {
+        int n = Random.Range(0, 6);
+        if (n >= 4)
+            Instantiate(healthPickUp, transform.position + offset, Quaternion.identity);
+        else if (n >= 1)
+        {
+            Instantiate(ak47, transform.position + offset, Quaternion.identity);
+        }
+        else
+        {
+            Instantiate(pistol, transform.position + offset, Quaternion.identity);
+        }
+    }
+
     // Update is called once per frame
     void Update()
     {
         agentPlayerDistance = Vector3.Distance(transform.position, playerTransform.position);
-        Debug.Log(stateMachine.currentState);
+
         stateMachine.Update();
+        //Debug.Log(stateMachine.currentState);
     }
 }

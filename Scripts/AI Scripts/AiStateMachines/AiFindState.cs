@@ -12,6 +12,8 @@ public class AiFindState : AiState
         agent.navMeshAgent.stoppingDistance = 1f;
         agent.weaponAim.weight = 0;
         tempDestination = agent.transform.position;
+        //tempDestination = new Vector3(5 + agent.transform.position.x, 0, agent.);
+        //Debug.Log(tempDestination);
 
     }
 
@@ -29,7 +31,7 @@ public class AiFindState : AiState
     Vector3 GetNewDestination(ref AiAgent agent)
     {
         Vector3 direction = agent.transform.position + new Vector3(Random.Range(-movement, movement), 0f, Random.Range(-movement, movement));
-        //checkWallColliison(agent);
+        checkWallColliison(agent);
         return direction;
     }
 
@@ -52,8 +54,9 @@ public class AiFindState : AiState
     void FindNewDestination(AiAgent agent)
     {
         float distance = Vector3.Distance(agent.transform.position, tempDestination);
-        //Debug.Log("distance: " + distance + " tempDistance: " + tempDestination);
-        if (distance < 1f || checkWallColliison(agent))
+
+        //        Debug.Log("distance: " + distance + " tempDistance: " + tempDestination);
+        if (distance < 5f || checkWallColliison(agent))
         {
             //Debug.Log("distance: " + distance);
             tempDestination = GetNewDestination(ref agent);
@@ -83,10 +86,11 @@ public class AiFindState : AiState
 
         //Debug.Log("Player Direction: " + playerDirection);
         agent.navMeshAgent.SetDestination(tempDestination);
+        agent.tempTarget = tempDestination;
         //Debug.Log("agent destination: " + agent.navMeshAgent.destination);
 
 
-        if (agent.agentPlayerDistance > agent.aiAgentConfig.chaseDistance)
+        if (agent.agentPlayerDistance > agent.chaseDistance)
         {
             FindNewDestination(agent);
 
